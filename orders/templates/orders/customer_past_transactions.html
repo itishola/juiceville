@@ -1,0 +1,285 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Loyalty Points Card - Simplified -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h4>🎁 My Loyalty Rewards</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-primary">{{ earned_points }}</h3>
+                                <small class="text-muted">Available Points</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-success">{{ total_orders }}</h3>
+                                <small class="text-muted">Total Orders</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-danger">{{ points_used }}</h3>
+                                <small class="text-muted">Points Used</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simple Loyalty Message -->
+            {% if customer %}
+            <div class="alert alert-success text-center">
+                <h4>🎉 Current Loyalty Points: <strong>{{ customer.loyalty_points }}</strong></h4>
+                <p>You need 50 points to redeem a ₦2500 discount!</p>
+            </div>
+            {% endif %}
+
+            <h2>My Order History</h2>
+            
+            <!-- Conditionally show cleanup options -->
+            {% if cleanup_available %}
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>🗑️ Cleanup Option:</strong> Hide delivered orders from this view without deleting them.
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#cleanupModal">
+                    Cleanup My View
+                </button>
+            </div>
+            {% else %}
+            <div class="alert alert-secondary">
+                <strong>📊 Order History</strong>
+                <p class="mb-0">Viewing all your past orders.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if page_obj %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Subtotal</th>
+                    <th>Delivery</th>
+                    <th>Discount</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Loyalty</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in page_obj %}
+                <tr class="{% if cleanup_available and order.hidden_from_customer %}text-muted bg-light{% endif %}">
+                    <td>
+                        <strong>#{{ order.id }}</strong>
+                        {% if cleanup_available and order.hidden_from_customer %}
+                        <br><small class="text-muted">(Hidden)</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.date_placed|date:"M d, Y" }}</td>
+                    <td>
+                        <small>
+                            {% for item in order.ordereditem_set.all %}
+                                {% if item.item %}
+                                    {{ item.quantity }}x {{ item.item.name }}<br>
+                                {% elif item.combo %}
+                                    {{ item.quantity }}x 🎁 {{ item.combo.name }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </small>
+                    </td>
+                    <td>₦{{ order.subtotal|floatformat:2|intcomma }}</td>
+                    <td>₦{{ order.delivery_fee|floatformat:2|intcomma }}</td>
+                    <td>
+                        {% if order.used_loyalty_points %}
+                        <span class="text-success">-₦2,500.00</span>
+                        {% else %}
+                        ₦0.00
+                        {% endif %}
+                    </td>
+                    <td><strong>₦{{ order.grand_total|floatformat:2|intcomma }}</strong></td>
+                    <td>
+                        {% if order.delivered %}
+                        <span class="badge badge-success">Delivered</span>
+                        {% else %}
+                        <span class="badge badge-warning">Processing</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.used_loyalty_points %}
+                        <span class="badge badge-info" title="Used 50 loyalty points">🎁 Used</span>
+                        {% else %}
+                        <small class="text-muted">Earned points</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'orders:transaction_detail' order.id %}" 
+                           class="btn btn-sm btn-outline-primary">View Details</a>
+                        {% if cleanup_available and order.delivered and not order.hidden_from_customer %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary mt-1" 
+                                onclick="hideOrder({{ order.id }})">
+                            Hide
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info">
+        <h4>No orders found</h4>
+        <p>You haven't placed any orders yet. <a href="{% url 'orders:create_order' %}">Start your first order!</a></p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Conditionally show cleanup modal -->
+{% if cleanup_available %}
+<!-- Cleanup Modal -->
+<div class="modal fade" id="cleanupModal" tabindex="-1" role="dialog" aria-labelledby="cleanupModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cleanupModalLabel">🗑️ Cleanup My Order History</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Choose how you want to clean up your order history view:</p>
+                
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="cleanupOption" id="hideDelivered" value="hide_delivered" checked>
+                    <label class="form-check-label" for="hideDelivered">
+                        <strong>Hide all delivered orders</strong><br>
+                        <small class="text-muted">Delivered orders will be hidden from this view but remain in the system for staff reports.</small>
+                    </label>
+                </div>
+                
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="cleanupOption" id="hideOld" value="hide_old">
+                    <label class="form-check-label" for="hideOld">
+                        <strong>Hide orders older than 30 days</strong><br>
+                        <small class="text-muted">Only show recent orders from the past month.</small>
+                    </label>
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="cleanupOption" id="showAll" value="show_all">
+                    <label class="form-check-label" for="showAll">
+                        <strong>Show all orders</strong><br>
+                        <small class="text-muted">Restore hidden orders and show complete history.</small>
+                    </label>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <small>
+                        ⚠️ <strong>Note:</strong> This only affects your personal view. All order data remains intact for staff reporting and analytics.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="applyCleanup()">Apply Cleanup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function hideOrder(orderId) {
+    if (confirm('Hide this order from your view? It will still be available in staff reports.')) {
+        fetch(`/orders/hide-order/${orderId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error hiding order: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error hiding order');
+        });
+    }
+}
+
+function applyCleanup() {
+    const selectedOption = document.querySelector('input[name="cleanupOption"]:checked').value;
+    
+    fetch('/orders/cleanup-orders/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: selectedOption
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#cleanupModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Error applying cleanup: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error applying cleanup');
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

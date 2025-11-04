@@ -1,0 +1,145 @@
+{% extends "orders/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-chart-bar me-2"></i>Monthly Report: {{ report_month }} {{ report_year }}</h1>
+                <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Date Range -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Report Period</h5>
+                    <p class="card-text mb-0">{{ start_date|date:"F d, Y" }} to {{ end_date|date:"F d, Y" }}</p>
+                </div>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ total_orders }}</h4>
+                            <p class="card-text">Total Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">₦{{ total_revenue|floatformat:2 }}</h4>
+                            <p class="card-text">Total Revenue</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">₦{{ average_daily_revenue|floatformat:2 }}</h4>
+                            <p class="card-text">Avg Daily Revenue</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Orders</th>
+                                    <th>Revenue</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in daily_reports %}
+                                <tr>
+                                    <td>{{ report.date|date:"M d, Y" }}</td>
+                                    <td>{{ report.date|date:"l" }}</td>
+                                    <td>{{ report.orders_count }}</td>
+                                    <td><strong>₦{{ report.revenue|floatformat:2 }}</strong></td>
+                                    <td>
+                                        {% if report.orders_count > 0 %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">No Orders</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        <h5>No Data Available</h5>
+                        <p>No orders found for {{ report_month }} {{ report_year }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Month Summary -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Month Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h5 class="text-primary">{{ business_days }}</h5>
+                            <small class="text-muted">Business Days</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-success">₦{{ total_revenue|floatformat:2 }}</h5>
+                            <small class="text-muted">Total Revenue</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-info">₦{{ average_order_value|floatformat:2 }}</h5>
+                            <small class="text-muted">Avg Order Value</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-warning">{{ orders_per_day|floatformat:1 }}</h5>
+                            <small class="text-muted">Orders Per Day</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.75em;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "orders/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+
+    <script>
+        function fillUsername() {
+                document.getElementById('username').value = document.getElementById('email').value;    
+        }
+
+        function fillPassword() {
+                document.getElementById('password').value = document.getElementById('password1').value;    
+        }
+    </script>
+
+    <section id="book-table">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-md-offset-2 col-sm-12">
+                    <div class="left-image">
+                        <img src="{% static 'orders/img/book_left_image.jpg' %}" alt="Combo Image Placeholder">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-12">
+                    <div class="right-info" style="overflow: scroll;">
+                        <h4>Create New Combo Offer</h4>
+                        <form id="form-submit" action="{% url 'items:create_combo' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            {{ form|crispy }}
+                            
+                            <fieldset>
+                                <button type="submit" id="form-submit" class="btn">SAVE COMBO</button>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock content %}

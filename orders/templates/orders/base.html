@@ -1,0 +1,321 @@
+{% load static %}
+{% load pwa %}  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="Juiceville - Fresh juices and healthy treats">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- PWA Meta Tags -->
+    {% progressive_web_app_meta %}
+    
+    <!-- Additional PWA Meta Tags -->
+    <meta name="theme-color" content="#ff6b00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="{% static 'orders/img/icons/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'orders/img/icons/favicon.ico' %}">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'orders/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/bootstrap-theme.min.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/fontAwesome.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/hero-slider.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/owl-carousel.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/templatemo-style.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/style.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css/images.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Spectral:200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+
+    <script src="{% static 'orders/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js' %}"></script>
+</head>
+
+<body>
+    <!-- PWA Install Prompt (Optional) -->
+    <div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+        <p>Install Juiceville for better experience</p>
+        <button id="install-app-btn" class="btn btn-primary">Install</button>
+        <button id="dismiss-install-btn" class="btn btn-secondary">Not Now</button>
+    </div>
+
+    <div class="header">
+        <div class="container">
+            <a href="#" class="navbar-brand scroll-top">Juiceville Cakes and Treats</a>
+            <nav class="navbar navbar-inverse" role="navigation">
+                <div class="navbar-header">
+                    <button type="button" id="nav-toggle" class="navbar-toggle" data-toggle="collapse" data-target="#main-nav">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+
+                <div id="main-nav" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="{% url 'index' %}">Home</a></li>
+                        <li><a href="{% url 'orders:test_menu' %}">Menu</a></li>
+                        
+                        {% if not user.is_authenticated %}
+                            <li><a href="{% url 'register_customer' %}">Sign Up</a></li>
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            
+                        {% elif user.is_staff %}
+                            <li><a href="{% url 'orders:create_order' %}">Place Order</a></li>
+                            <li><a href="{% url 'orders:customer_past_transactions' %}">My Orders</a></li>
+                            <li><a href="{% url 'staff_dashboard' %}">Dashboard</a></li>
+                            
+                            {% if user.is_superuser or user.staff.designation in 'MD,CS,KS' %}
+                            <li><a href="{% url 'orders:day_orders' %}">Today's Orders</a></li>
+                        {% endif %}
+
+                        {% if user.is_superuser or user.staff.designation == 'MD' %}
+                            <li><a href="{% url 'items:create_item' %}">CREATE ITEM</a></li>
+                            <li><a href="{% url 'items:create_combo' %}">CREATE COMBO</a></li>
+                            <li><a href="{% url 'orders:notify_offers' %}">NOTIFY OFFERS</a></li>
+                        {% endif %}
+
+                            {% if user.is_superuser or user.groups.all.0.name == "Managing Director" or user.staff.designation in "MD,MG" %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link" href="{% url 'orders:customer_management' %}" style="font-weight: 600; color: #dc3545;">
+                                    <i class="fas fa-chart-line me-1"></i>MG Dashboard
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mgDropdown">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center" href="{% url 'orders:customer_management' %}">
+                                            <i class="fas fa-users me-2 text-primary"></i>
+                                            <div>
+                                                <div class="fw-bold">Customer Management</div>
+                                                <small class="text-muted">View all customer details</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center" href="{% url 'orders:customer_analytics' %}">
+                                            <i class="fas fa-chart-bar me-2 text-success"></i>
+                                            <div>
+                                                <div class="fw-bold">Customer Analytics</div>
+                                                <small class="text-muted">Sales and customer insights</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center" href="{% url 'orders:export_customers_csv' %}">
+                                            <i class="fas fa-download me-2 text-info"></i>
+                                            <div>
+                                                <div class="fw-bold">Export Data</div>
+                                                <small class="text-muted">Download customer contacts</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center" href="{% url 'orders:monthly_report' %}">
+                                            <i class="fas fa-file-alt me-2 text-warning"></i>
+                                            <div>
+                                                <div class="fw-bold">Monthly Reports</div>
+                                                <small class="text-muted">View financial reports</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            {% endif %}
+                            
+                            {% if user.is_superuser or user.staff.designation in 'MD,MG,CS,KS' %}
+                                <li><a href="{% url 'staff_management' %}">Staff Mgmt</a></li>
+                            {% endif %}
+                            
+                            {% if user.is_superuser or user.staff.designation in 'MD,MG,CS,KS,AC' %}
+                                <li><a href="{% url 'orders:all_transactions' %}">All Transactions</a></li>
+                                <li><a href="{% url 'orders:daily_report' %}">Daily Report</a></li>
+                                <li><a href="{% url 'orders:monthly_report' %}">Monthly Report</a></li>
+                            {% endif %}
+                            
+                            {% if user.is_superuser %}
+                                <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                            {% endif %}
+
+                            <li><a href="{% url 'staff_profile' %}">Hi, {{ user.staff.name }}</a></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="nav-logout-btn">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
+                            
+                        {% else %}
+                            <li><a href="{% url 'orders:create_order' %}">Place Order</a></li>
+                            <li><a href="{% url 'orders:customer_past_transactions' %}">My Orders</a></li>
+                            <li><a href="{% url 'customer_profile' %}">Hi, {{ user.customer.name }}</a></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="nav-logout-btn">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="width: 60vw; margin-left: 20vw; position: fixed; z-index: 100; text-align: center">
+                <p style="color: green; font-size: medium; display: inline; margin: auto;">{{ message }} <span class="closebtn" style="display: inline; margin-left: auto;" onclick="this.parentElement.parentElement.style.display='none';">&times;</span></p>        
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% block content %}
+    {% endblock %}
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <p style="color: aliceblue;"><b>Juiceville - Online Orders</b></p>
+                </div>
+                <div class="col-md-4">
+                    <ul class="social-icons">
+                        <li><a rel="nofollow" href="http://www.facebook.com/templatemo" target="_parent"><i class="fa fa-facebook"></i></a></li>
+                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                        <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                        <li><a href="#"><i class="fa fa-rss"></i></a></li>
+                        <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <p>Near Pepsi Village, Unilorin Campus</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous"></script>
+    
+    <script>window.jQuery || document.write('<script src="{% static "orders/js/vendor/jquery-1.11.2.min.js" %}"><\/script>');</script>
+    
+    <script src="{% static 'orders/js/vendor/bootstrap.min.js' %}"></script>
+    <script src="{% static 'orders/js/plugins.js' %}"></script>
+    <script src="{% static 'orders/js/main.js' %}"></script>
+
+    <!-- Manual Service Worker Registration -->
+    <script type="text/javascript">
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('{% url "serviceworker" %}')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // PWA Installation Handling
+        let deferredPrompt;
+        const installPrompt = document.getElementById('pwa-install-prompt');
+        const installBtn = document.getElementById('install-app-btn');
+        const dismissBtn = document.getElementById('dismiss-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt after 5 seconds
+            setTimeout(() => {
+                if (installPrompt) {
+                    installPrompt.style.display = 'block';
+                }
+            }, 5000);
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                if (installPrompt) {
+                    installPrompt.style.display = 'none';
+                }
+            });
+        }
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                if (installPrompt) {
+                    installPrompt.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('Juiceville PWA installed');
+            if (installPrompt) {
+                installPrompt.style.display = 'none';
+            }
+        });
+
+        // Your existing JavaScript
+        $(document).ready(function() {
+            // navigation click actions 
+            $('.scroll-link').on('click', function(event){
+                event.preventDefault();
+                var sectionID = $(this).attr("data-id");
+                scrollToID('#' + sectionID, 750);
+            });
+            // scroll to top action
+            $('.scroll-top').on('click', function(event) {
+                event.preventDefault();
+                $('html, body').animate({scrollTop:0}, 'slow');         
+            });
+            // mobile nav toggle
+            $('#nav-toggle').on('click', function (event) {
+                event.preventDefault();
+                $('#main-nav').toggleClass("open");
+            });
+        });
+
+        function scrollToID(id, speed){
+            var offSet = 0;
+            var targetOffset = $(id).offset().top - offSet;
+            var mainNav = $('#main-nav');
+            $('html,body').animate({scrollTop:targetOffset}, speed);
+            if (mainNav.hasClass("open")) {
+                mainNav.css("height", "1px").removeClass("in").addClass("collapse");
+                mainNav.removeClass("open");
+            }
+        }
+
+        if (typeof console === "undefined") {
+            console = {
+                log: function() { }
+            };
+        }
+    </script>
+</body>
+</html>

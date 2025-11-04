@@ -1,0 +1,43 @@
+{% extends "orders/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-chart-line me-2"></i>MG Dashboard</h1>
+            <p class="lead">Management and Analytics Overview</p>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Customer Management</h5>
+                            <p class="card-text">View and export customer contact details</p>
+                            <a href="{% url 'orders:customer_management' %}" class="btn btn-light">Manage Customers</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Sales Analytics</h5>
+                            <p class="card-text">Customer spending and behavior insights</p>
+                            <a href="{% url 'orders:customer_analytics' %}" class="btn btn-light">View Analytics</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Export Data</h5>
+                            <p class="card-text">Download customer contacts for marketing</p>
+                            <a href="{% url 'orders:export_customers_csv' %}" class="btn btn-light">Export CSV</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+/* Image Styles */
+.item-image {
+    width: 100%;
+    height: auto;
+    max-width: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.lazy-image {
+    background: #f5f5f5;
+    min-height: 150px;
+}

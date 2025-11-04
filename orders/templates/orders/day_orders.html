@@ -1,0 +1,223 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% block content %}
+
+<section class="page-heading">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Today's Orders</h1>
+                <p>Orders for {{ today_date|date:"F d, Y" }}</p>
+                <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="services">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% if today_orders %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Today's Orders ({{ today_orders|length }} total)</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered mb-0">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer Name</th>
+                                        <th>Phone Number</th>
+                                        <th>Delivery Location</th>
+                                        <th>Order Time</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in today_orders %}
+                                    <tr>
+                                        <td><strong>#{{ order.id }}</strong></td>
+                                        <td>{{ order.customer.name }}</td>
+                                        <td>{{ order.customer.phone }}</td>
+                                        <td>{{ order.customer.address }}</td>
+                                        <td>{{ order.time_placed|time:"H:i" }}</td>
+                                        <td>₦{{ order.grand_total|floatformat:2 }}</td>
+                                        <td>
+                                            {% if order.delivered %}
+                                                <span class="badge badge-success">Delivered</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Processing</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <!-- Full Details Button -->
+                                            <a href="{% url 'orders:staff_order_details' order.id %}" 
+                                               class="btn btn-sm btn-primary">
+                                                Full Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Stats -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <h4 class="card-title">{{ today_orders|length }}</h4>
+                                <p class="card-text">Total Orders</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <h4 class="card-title">{{ delivered_orders }}</h4>
+                                <p class="card-text">Delivered</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <h4 class="card-title">{{ pending_orders }}</h4>
+                                <p class="card-text">Processing</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <h4 class="card-title">₦{{ total_revenue|floatformat:2 }}</h4>
+                                <p class="card-text">Total Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="pagination-container mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    <h4>No orders placed today.</h4>
+                    <p>There are no orders for {{ today_date|date:"F d, Y" }}.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Order Details Modal (same as in staff_dashboard) -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details - Quick View</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="order-details-content">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p>Loading order details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+// day_orders.html (Corrected Script Block)
+<script>
+    $(document).ready(function() {
+       // New, delegated code (works for buttons loaded after the page is initialized)
+        $(document).on('click', '.view-order-details', function(e) {
+            e.preventDefault();
+            var orderId = $(this).data('order-id');
+            var $modalContent = $('#orderDetailsModal .modal-body'); 
+            
+            $modalContent.html(`
+                <div class="text-center p-5">
+                    <i class="fas fa-spinner fa-spin fa-3x text-info"></i> 
+                    <p class="mt-2">Loading order details...</p>
+                </div>
+            `);
+            var $modalContent = $('#orderDetailsModal .modal-body'); 
+            $('#orderDetailsModal').modal('show'); 
+
+            $.ajax({
+                type: 'GET',
+                url: "{% url 'orders:staff_order_details' 0 %}".replace('0', orderId),
+                success: function(data) {
+                    if (data.success) {
+                        $modalContent.html(data.html); 
+                    } else {
+                        $modalContent.html(`
+                            <div class="alert alert-danger">
+                                <h6>Error Loading Order Details</h6>
+                                <p>${data.error || 'Unable to load details.'}</p>
+                                <a href="{% url 'orders:staff_order_details' 0 %}".replace('0', orderId) class="btn btn-primary btn-sm">
+                                    View Full Details Page
+                                </a>
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $modalContent.html(`
+                        <div class="alert alert-danger">
+                            <h6>Connection Error</h6>
+                            <p>Unable to load order details. Please check your connection and try again.</p>
+                            <a href="{% url 'orders:staff_order_details' 0 %}".replace('0', orderId) class="btn btn-primary btn-sm">
+                                View Full Details Page
+                            </a>
+                        </div>
+                    `);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock content %}

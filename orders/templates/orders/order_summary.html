@@ -1,0 +1,118 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3>🎉 Order Confirmed! #{{ order.id }}</h3>
+                </div>
+                <div class="card-body">
+                    <h5>Order Details:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>
+                                        {% if item.item %}
+                                            {{ item.item.name }}
+                                        {% elif item.combo %}
+                                            🎁 {{ item.combo.name }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.item %}
+                                            <span class="badge badge-info">Item</span>
+                                        {% elif item.combo %}
+                                            <span class="badge badge-warning">Combo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>₦{{ item.unit_price|floatformat:2|intcomma }}</td>
+                                    <td>₦{{ item.price|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        <div class="row">
+                            <div class="col-md-6 offset-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Order Summary</h6>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Subtotal:</span>
+                                            <span>₦{{ order.subtotal|floatformat:2|intcomma }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Delivery Fee:</span>
+                                            <span>₦{{ order.delivery_fee|floatformat:2|intcomma }}</span>
+                                        </div>
+                                        {% if order.used_loyalty_points %}
+                                        <div class="d-flex justify-content-between text-success">
+                                            <span>Loyalty Discount:</span>
+                                            <span>-₦2,500.00</span>
+                                        </div>
+                                        {% endif %}
+                                        <hr>
+                                        <div class="d-flex justify-content-between font-weight-bold h5">
+                                            <span>Grand Total:</span>
+                                            <span class="text-success">₦{{ order.grand_total|floatformat:2|intcomma }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order Status</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Status:</strong> 
+                        {% if order.delivered %}
+                            <span class="badge badge-success">Delivered</span>
+                        {% else %}
+                            <span class="badge badge-warning">Processing</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Date Placed:</strong> {{ order.date_placed }}</p>
+                    <p><strong>Time Placed:</strong> {{ order.time_placed }}</p>
+                    
+                    {% if order.expected_delivery_time %}
+                    <p><strong>Expected Delivery:</strong> {{ order.expected_delivery_time }}</p>
+                    {% endif %}
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <strong>📞 Contact Us:</strong><br>
+                            If you have any questions about your order, please call us at:<br>
+                            <strong>0807 783 6338</strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

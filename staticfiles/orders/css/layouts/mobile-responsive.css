@@ -1,0 +1,98 @@
+/* Mobile-responsive dropdown fixes */
+@media (max-width: 768px) {
+    /* Navigation dropdown improvements */
+    .dropdown-menu {
+        position: fixed !important;
+        top: 60px !important;
+        left: 10px !important;
+        right: 10px !important;
+        width: auto !important;
+        max-height: 70vh;
+        overflow-y: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 1060;
+        background: white;
+    }
+    
+    .dropdown-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f8f9fa;
+        font-size: 14px;
+    }
+    
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* MG Dashboard specific mobile styles */
+    #mgDropdown {
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    /* Table responsiveness */
+    .table-responsive {
+        font-size: 12px;
+    }
+
+    /* Card adjustments for mobile */
+    .card-body {
+        padding: 15px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    /* Button adjustments */
+    .btn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    /* Navigation bar fixes */
+    .navbar-nav .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    /* Statistics cards */
+    .card.text-white .card-title {
+        font-size: 1.3rem;
+    }
+
+    .card.text-white .card-text {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet adjustments */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .container {
+        max-width: 95%;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+}
+
+/* Ensure proper Bootstrap 5 dropdown functionality */
+.dropdown-toggle::after {
+    margin-left: 5px;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+/* Improved dropdown item styling */
+.dropdown-item {
+    transition: all 0.2s ease;
+    display: flex;

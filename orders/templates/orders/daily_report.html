@@ -1,0 +1,158 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-calendar-day me-2"></i>Daily Report</h1>
+                <div>
+                    <a href="?date={{ prev_date|date:'Y-m-d' }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-chevron-left me-1"></i>Previous
+                    </a>
+                    <a href="?date={{ next_date|date:'Y-m-d' }}" class="btn btn-outline-secondary me-2">
+                        Next<i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                    <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Date Selector -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row align-items-center">
+                        <div class="col-md-4">
+                            <label for="date" class="form-label">Select Date:</label>
+                            <input type="date" name="date" id="date" class="form-control" 
+                                   value="{{ report_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary mt-4">View Report</button>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h4 class="text-muted">{{ report_date|date:"F d, Y" }}</h4>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ total_orders }}</h4>
+                            <p class="card-text">Total Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">₦{{ total_revenue|floatformat:2|intcomma }}</h4>
+                            <p class="card-text">Total Revenue</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ delivered_orders }}</h4>
+                            <p class="card-text">Delivered</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">₦{{ average_order_value|floatformat:2 }}</h4>
+                            <p class="card-text">Avg Order Value</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Items -->
+            {% if top_items %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Selling Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item_name, data in top_items %}
+                                <tr>
+                                    <td>{{ item_name }}</td>
+                                    <td>{{ data.quantity }}</td>
+                                    <td><strong>₦{{ data.revenue|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Orders List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Orders for {{ report_date|date:"F d, Y" }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Time</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in daily_orders %}
+                                <tr>
+                                    <td><strong>#{{ order.id }}</strong></td>
+                                    <td>{{ order.customer.name }}</td>
+                                    <td>{{ order.time_placed|time:"H:i" }}</td>
+                                    <td><strong>₦{{ order.grand_total|floatformat:2 }}</strong></td>
+                                    <td>
+                                        {% if order.delivered %}
+                                            <span class="badge badge-success">Delivered</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Processing</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        <h5>No orders for {{ report_date|date:"F d, Y" }}</h5>
+                        <p>There were no orders placed on this date.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "orders/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Update Stock Levels</h1>
+            <p class="text-muted">Staff: {{ staff.name }} ({{ staff.get_designation_display }})</p>
+            
+            <div class="alert alert-info">
+                <strong>💡 Note:</strong> Update stock levels for both individual items and combo packs.
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Individual Items Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4>🛒 Individual Items</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for item in items %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ item.name }}</h6>
+                                        <p class="card-text small text-muted">
+                                            Category: {{ item.get_category_display }}<br>
+                                            Price: ₦{{ item.rate|intcomma }}
+                                        </p>
+                                        <div class="form-group">
+                                            <label for="item_{{ item.id }}" class="small font-weight-bold">
+                                                Current Stock: <span class="badge {% if item.stock > 10 %}badge-success{% elif item.stock > 0 %}badge-warning{% else %}badge-danger{% endif %}">
+                                                    {{ item.stock }}
+                                                </span>
+                                            </label>
+                                            <input type="number" 
+                                                   name="item_{{ item.id }}" 
+                                                   id="item_{{ item.id }}"
+                                                   class="form-control form-control-sm" 
+                                                   value="{{ item.stock }}" 
+                                                   min="0" 
+                                                   max="1000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combos Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h4>🎁 Combo Packs</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if combos %}
+                        <div class="row">
+                            {% for combo in combos %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ combo.name }}</h6>
+                                        <p class="card-text small text-muted">
+                                            {{ combo.description }}<br>
+                                            Price: ₦{{ combo.rate|intcomma }}<br>
+                                            <strong>Effective Stock:</strong> 
+                                            <span class="badge {% if combo.effective_stock > 10 %}badge-success{% elif combo.effective_stock > 0 %}badge-warning{% else %}badge-danger{% endif %}">
+                                                {{ combo.effective_stock }}
+                                            </span>
+                                        </p>
+                                        
+                                        <!-- Combo Components -->
+                                        <div class="small mb-2">
+                                            <strong>Contains:</strong><br>
+                                            {% if combo.item1 %}- {{ combo.item1.name }}<br>{% endif %}
+                                            {% if combo.item2 %}- {{ combo.item2.name }}<br>{% endif %}
+                                            {% if combo.item3 %}- {{ combo.item3.name }}<br>{% endif %}
+                                            {% if combo.item4 %}- {{ combo.item4.name }}<br>{% endif %}
+                                            {% if combo.item5 %}- {{ combo.item5.name }}<br>{% endif %}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="combo_{{ combo.id }}" class="small font-weight-bold">
+                                                Combo Stock:
+                                                <span class="badge {% if combo.stock > 10 %}badge-success{% elif combo.stock > 0 %}badge-warning{% else %}badge-danger{% endif %}">
+                                                    {{ combo.stock }}
+                                                </span>
+                                            </label>
+                                            <input type="number" 
+                                                   name="combo_{{ combo.id }}" 
+                                                   id="combo_{{ combo.id }}"
+                                                   class="form-control form-control-sm" 
+                                                   value="{{ combo.stock }}" 
+                                                   min="0" 
+                                                   max="1000">
+                                            <small class="form-text text-muted">
+                                                Note: Combo availability also depends on individual item stocks.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            No combo packs available. Create combos in the admin panel.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-success btn-lg btn-block">
+                            💾 Update All Stock Levels
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary btn-lg btn-block">
+                            ← Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Stock Summary -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Stock Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-primary">{{ items.count }}</h4>
+                                        <small class="text-muted">Total Items</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-success">{{ items_low_stock }}</h4>
+                                        <small class="text-muted">Low Stock Items</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-warning">{{ combos.count }}</h4>
+                                        <small class="text-muted">Total Combos</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-danger">{{ combos_low_stock }}</h4>
+                                        <small class="text-muted">Low Stock Combos</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

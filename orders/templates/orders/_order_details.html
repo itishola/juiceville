@@ -1,0 +1,190 @@
+{% load static %}
+
+<div class="order-details">
+    <!-- Order Header -->
+    <div class="order-header mb-4">
+        <h4 class="text-primary">Order #{{ order.id }}</h4>
+        <div class="order-status">
+            {% if order.delivered %}
+                <span class="badge badge-success p-2">✓ Delivered</span>
+            {% else %}
+                <span class="badge badge-warning p-2">⏳ Processing</span>
+            {% endif %}
+            {% if order.finalized %}
+                <span class="badge badge-info p-2 ml-2">Finalized</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Customer and Order Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="info-card">
+                <h6 class="section-title">Customer Information</h6>
+                <p><strong>Name:</strong> {{ order.customer.name }}</p>
+                <p><strong>Phone:</strong> {{ order.customer.phone }}</p>
+                <p>
+                    <strong>Full Delivery Address:</strong> 
+                    {{ order.customer.address }} 
+                    </p>
+
+                <p>
+                    <strong>Delivery Region/Zone:</strong> 
+                    <span class="badge badge-primary">{{ order.customer.delivery_location }}</span> 
+                </p>
+                {% if order.customer.user.email %}
+                <p><strong>Email:</strong> {{ order.customer.user.email }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card">
+                <h6 class="section-title">Order Information</h6>
+                <p><strong>Date:</strong> {{ order.date_placed|date:"M d, Y" }}</p>
+                <p><strong>Time:</strong> {{ order.time_placed|time:"H:i" }}</p>
+                {% if order.expected_delivery_time %}
+                <p><strong>Expected Delivery:</strong> {{ order.expected_delivery_time|time:"H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ordered Items -->
+    <div class="ordered-items mb-4">
+        <h6 class="section-title">Ordered Items</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Item Name</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ordered_items %}
+                    <tr>
+                        <td>{{ item.item.name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-right">₦{{ item.item.price|floatformat:2 }}</td>
+                        <td class="text-right">₦{{ item.price|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No items found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary mb-4">
+        <h6 class="section-title">Order Summary</h6>
+        <div class="summary-card">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span class="text-right">₦{{ order.subtotal|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Delivery Fee:</span>
+                <span class="text-right">₦{{ order.delivery_fee|floatformat:2 }}</span>
+            </div>
+            {% if order.used_loyalty_points %}
+            <div class="summary-row text-success">
+                <span>Loyalty Discount:</span>
+                <span class="text-right">- ₦2,500.00</span>
+            </div>
+            {% endif %}
+            <div class="summary-row total-row">
+                <strong>Grand Total:</strong>
+                <strong class="text-right">₦{{ order.grand_total|floatformat:2 }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Information -->
+    {% if order.payment_reference %}
+    <div class="payment-info mb-4">
+        <h6 class="section-title">Payment Information</h6>
+        <div class="info-card">
+            <p><strong>Reference:</strong> {{ order.payment_reference }}</p>
+            <p>
+                <strong>Status:</strong> 
+                {% if order.finalized %}
+                    <span class="badge badge-success">Paid</span>
+                {% else %}
+                    <span class="badge badge-warning">Pending</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Staff Actions -->
+    {% if is_staff and not order.delivered %}
+    <div class="staff-actions text-center mt-4 pt-3 border-top">
+        <form action="{% url 'orders:close_order' order.id %}" method="POST" class="d-inline-block">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fa fa-check"></i> Mark as Delivered
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.order-details {
+    font-family: 'Roboto', sans-serif;
+}
+
+.section-title {
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.info-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.summary-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.total-row {
+    font-size: 1.1em;
+    padding-top: 10px;
+    border-top: 2px solid #dee2e6;
+}
+
+.table-sm th, .table-sm td {
+    padding: 8px 12px;
+}
+
+.badge {
+    font-size: 0.8em;
+    padding: 6px 10px;
+}
+</style>

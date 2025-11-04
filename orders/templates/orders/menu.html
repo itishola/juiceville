@@ -1,0 +1,686 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+    
+    <form id="form-submit" method="POST" action="{% url 'orders:add_items' order.id %}">
+    {% csrf_token %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-9">
+                
+                <section class="combo-menu" id="section-combos">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3 class="mt-4 mb-3">Today's Combos 🎁</h3>
+                                <div class="row">
+                                    {% for combo in available_combos %}
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ combo.name }}</h5>
+                                                <p class="card-text small text-muted">{{ combo.description|truncatechars:70 }}</p>
+                                                <p class="text-success font-weight-bold">
+                                                    ₦{{ combo.rate|intcomma }} 
+                                                    <span class="badge badge-info float-right">5% OFF</span>
+                                                </p>
+                                                <p class="text-warning small mb-2">Stock: {{ combo.effective_stock }}</p>
+
+                                                {% if combo.effective_stock > 0 %}
+                                                    <div class="d-flex align-items-center">
+                                                        <label for="qty_{{ combo.id }}" class="small mb-0 mr-2">Qty:</label>
+                                                        <input type="number" 
+                                                            id="qty_{{ combo.id }}" 
+                                                            name="combo_{{ combo.id }}" 
+                                                            value="0" 
+                                                            min="0" 
+                                                            max="{{ combo.effective_stock }}" 
+                                                            class="form-control form-control-sm combo-quantity"
+                                                            style="width: 60px;">
+                                                    </div>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-danger w-100" disabled>Sold Out</button>
+                                                {% endif %} 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <hr>
+                
+                {% if ck_items %}
+                <section class="breakfast-menu" id="section-cakes">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Cakes ({{ ck_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in ck_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if ps_items %}
+                <section class="breakfast-menu" id="section-pastry">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Pastry ({{ ps_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in ps_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if js_items %}
+                <section class="breakfast-menu" id="section-juices">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Juices ({{ js_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in js_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if dr_items %}
+                <section class="breakfast-menu" id="section-drinks">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Assorted Pet & Can Drinks ({{ dr_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in dr_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if fd_items %}
+                <section class="breakfast-menu" id="section-foods">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Foods ({{ fd_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in fd_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if pr_items %}
+                <section class="breakfast-menu" id="section-protiens">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Protiens ({{ pr_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in pr_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+                
+                {% if ss_items %}
+                <section class="breakfast-menu" id="section-small chops & snacks packs">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Small Chops & Snacks Packs ({{ ss_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in ss_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+                
+                {% if ml_items %}
+                <section class="breakfast-menu" id="section-savory foods & proteins">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Meals & Proteins ({{ ml_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in ml_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+                
+                {% if dt_items %}
+                <section class="breakfast-menu" id="section-desserts & treats packs">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Desserts & Treats Packs ({{ dt_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in dt_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+                
+                {% if pc_items %}
+                <section class="breakfast-menu" id="section-pre-order cakes">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Pre-Order Cakes ({{ pc_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in pc_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if cm_items %}
+                <section class="breakfast-menu" id="section-snacks">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="breakfast-menu-content">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h2>Combos ({{ cm_items|length }} items)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        {% for item in sn_items %}
+                                        <div class="col-md-4 col-sm-6 mb-4">
+                                            <div class="food-item card h-100">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <span class="text-muted">No image</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <div class="price">N. {{ item.rate }}</div>
+                                                    <div class="text-content">
+                                                        <p><small class="text-muted">{{ item.rating }}/5 Stars</small></p>
+                                                        <h5 class="card-title">{{ item.name }}</h5>
+                                                        <p class="card-text">{{ item.description }}</p>
+                                                        <div class="form-group">
+                                                            <label for="quantity-{{ item.id }}">Quantity:</label>
+                                                            <input type="number" name="{{ item.id }}" class="form-control" id="quantity-{{ item.id }}" 
+                                                                   placeholder="0" min="0" max="{{ item.stock }}" value="0" style="width: 100px;">
+                                                            <small class="form-text text-muted">Stock: {{ item.stock }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+            </div>
+
+            <div class="col-md-3">
+                <div class="sticky-top" style="top: 20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Order #{{ order.id }}</h4>
+                        </div>
+                        <div class="card-body">
+                            <h6>Current Items:</h6>
+                            <ul class="list-unstyled">
+                                {% for oitem in ordered_items %}
+                                    <li class="border-bottom pb-2 mb-2">
+                                        <strong>{{ oitem.quantity }}x</strong> 
+                                        {% if oitem.item %}
+                                            {{ oitem.item.name }}
+                                        {% elif oitem.combo %}
+                                            🎁 {{ oitem.combo.name }} (Combo)
+                                        {% endif %}
+                                        <br>
+                                        <small>N. {{ oitem.price|floatformat:2 }}</small>
+                                    </li>
+                                {% empty %}
+                                    <li class="text-muted">No items added yet</li>
+                                {% endfor %}
+                            </ul>
+                                                    
+                            <div class="border-top pt-2">
+                                <p>Subtotal: N. {{ order.subtotal|floatformat:2 }}</p>
+                                <p>Delivery Fee: N. {{ order.delivery_fee|floatformat:2 }}</p>
+                                
+                                {% if order.used_loyalty_points %}
+                                <p class="text-success">Loyalty Discount: -N. 2500.00</p>
+                                {% endif %}
+                                
+                                <h5>Grand Total: <strong>N. {{ order.grand_total|floatformat:2 }}</strong></h5>
+                            </div>
+
+                            <div class="mt-3">
+                                {% if not order.used_loyalty_points and request.user.customer.loyalty_points >= 50 %}
+                                <a href="{% url 'orders:apply_loyalty_points' order.id %}" class="btn btn-warning btn-block mb-2">
+                                    Use Loyalty Points (-₦2500)
+                                </a>
+                                {% endif %}
+                                
+                                <button type="submit" class="btn btn-primary btn-block mb-2" form="form-submit" name="add_selected">
+                                    Add Selected Items
+                                </button>
+                                        
+                                {% if ordered_items %}
+                                <a href="{% url 'orders:initiate_payment' order.id %}" class="btn btn-success btn-block mb-2">
+                                    Proceed to Payment
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'orders:delete_order' order.id %}" class="btn btn-danger btn-block" 
+                                onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    Cancel Order
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </form>
+
+    <script>
+        function filterCategories() {
+            const categories = [
+                { checkbox: 'Cakes', section: 'section-cakes' },
+                { checkbox: 'Pastry', section: 'section-pastry' },
+                { checkbox: 'Juices', section: 'section-juices' },
+                { checkbox: 'Drinks', section: 'section-drinks' },
+                { checkbox: 'Foods', section: 'section-foods' },
+                { checkbox: 'Proteins', section: 'section-protiens' },
+                { checkbox: 'Small Chops & Snacks Packs', section: 'section-Small Chops & Snacks Packs' },
+                { checkbox: 'Meals & Proteins', section: 'section-Meals & Proteins' },
+                { checkbox: 'Desserts & Treats Packs', section: 'section-Desserts & Treats Packs' },
+                { checkbox: 'Pre-Order Cakes', section: 'section-Pre-Order Cakes' },
+                { checkbox: 'Combos', section: 'section-combos' },
+            ];
+
+            categories.forEach(cat => {
+                const checkbox = document.getElementById(cat.checkbox);
+                const section = document.getElementById(cat.section);
+                
+                if (checkbox && section) {
+                    if (checkbox.checked) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function showAllCategories() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            filterCategories();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            filterCategories();
+        });
+    </script>
+
+{% endblock %}

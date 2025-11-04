@@ -1,0 +1,78 @@
+{% extends "orders/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Monthly Sales Report: {{ report_month }} {{ report_year }}</h2>
+    <p class="lead">From {{ start_date|date:"F d" }} to {{ end_date|date:"F d, Y" }}</p>
+    
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h3>₦{{ total_revenue|floatformat:2|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h3>{{ total_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for daily_report in daily_reports|dictsort:"date" %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h4 class="mb-0">{{ daily_report.date|date:"l, F jS" }} 
+                    <small class="text-muted float-right">
+                        {{ daily_report.orders_count }} Orders | ₦{{ daily_report.revenue|floatformat:2|intcomma }}
+                    </small>
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm mb-0">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Time</th>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Delivered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in daily_report.events %}
+                            <tr>
+                                <td>{{ event.time }}</td>
+                                <td><a href="{% url 'orders:staff_order_details' order_id=event.order_id %}">{{ event.order_id }}</a></td>
+                                <td>{{ event.customer }}</td>
+                                <td>₦{{ event.total|floatformat:2|intcomma }}</td>
+                                <td><span class="badge badge-info">{{ event.status }}</span></td>
+                                <td>
+                                    {% if event.is_delivered %}
+                                    <span class="badge badge-success">YES</span>
+                                    {% else %}
+                                    <span class="badge badge-warning">NO</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            No finalized orders found for {{ report_month }} {{ report_year }}.
+        </div>
+    {% endfor %}
+
+</div>
+{% endblock content %}

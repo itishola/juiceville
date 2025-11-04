@@ -1,0 +1,128 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-chart-bar me-2"></i>Customer Analytics</h1>
+                <div>
+                    <a href="{% url 'orders:customer_management' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Customers
+                    </a>
+                    <a href="{% url 'orders:export_analytics_csv' %}" class="btn btn-success">
+                        <i class="fas fa-download me-1"></i>Export Analytics CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Analytics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ total_customers }}</h4>
+                            <p class="card-text">Total Customers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ customers_with_phone }}</h4>
+                            <p class="card-text">With Phone Numbers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ phone_percentage|floatformat:1 }}%</h4>
+                            <p class="card-text">Phone Coverage</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ new_customers_this_month }}</h4>
+                            <p class="card-text">New This Month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Customers -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Customers by Spending</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Customer</th>
+                                    <th>Email</th>
+                                    <th>Total Orders</th>
+                                    <th>Total Spent</th>
+                                    <th>Loyalty Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in top_customers %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong>{{ customer.name }}</strong>
+                                    </td>
+                                    <td>{{ customer.user.email }}</td>
+                                    <td>{{ customer.order_count }}</td>
+                                    <td>
+                                        <span class="text-success fw-bold">
+                                            ₦{{ customer.total_spent|default:0|floatformat:2|intcomma }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-warning">{{ customer.loyalty_points }} points</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No customer data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-text {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
