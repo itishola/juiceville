@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-b#bk7gugz38$jb8a5^hbf*)i&(tv0^i-zz!3=!r-m$(fm^q=w_"
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -98,26 +98,15 @@ WSGI_APPLICATION = "juiceville.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-'''
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-'''
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'juiceville_db',
-        'USER': 'juiceville',
-        'PASSWORD': 'juiceville1234',
-        'HOST': '127.0.0.1',  # Or the IP address/hostname of your MySQL server
-        'PORT': '3306',       # Or the specific port your MySQL server is listening on
+        'NAME': 'itishola$juiceville',  # PythonAnywhere database name format
+        'USER': 'itishola',
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': 'itishola.mysql.pythonanywhere-services.com',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
         }
     }
 }
@@ -167,7 +156,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 #################################
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# STATIC_URL = '/static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -181,7 +169,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # CRITICAL: This must be the App Password you generated
 EMAIL_HOST_USER = 'juicevillecakesandtreats@gmail.com' 
-EMAIL_HOST_PASSWORD = 'gelihhuanenojnwx'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -222,8 +210,8 @@ ACCOUNT_FORMS = {
 django_heroku.settings(locals())
 
 # Payment Gateway Settings
-PAYSTACK_SECRET_KEY = 'sk_test_f954232cdbb34e47accde527ec8c0f1088635f17'
-PAYSTACK_PUBLIC_KEY = 'pk_test_47a24d452135c29d407716b68228be2cf0dd5cdd'
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY')
 
 # Default delivery fee for all orders
 DEFAULT_DELIVERY_FEE = 300
@@ -305,9 +293,16 @@ PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
 
 # --- Telegram Bot Credentials ---
-TELEGRAM_BOT_TOKEN = '7379387313:AAGp9hvaLtsYotoNZpNNddUrjatCWHiDJho'
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = '-1003010450709'
 
 # --- Base URL for creating clickable links (IMPORTANT) ---
 # Use your public domain when hosted (HTTPS required). Use localhost for development.
-BASE_URL = 'http://127.0.0.1:8000' 
+BASE_URL = 'https://www.juiceville.ng'
+
+# Security settings
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
